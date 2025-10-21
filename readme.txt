@@ -1,4 +1,5 @@
 === Gravity Forms Graph ===
+
 Contributors: infactai
 Tags: gravity forms, analytics, charts, reports, statistics
 Requires at least: 5.8
