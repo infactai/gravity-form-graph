@@ -5,7 +5,7 @@ Tags: gravity forms, analytics, charts, reports, statistics
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,15 @@ Users need the `gravityforms_view_entries` capability to view reports.
 
 == Changelog ==
 
+= 1.1.0 =
+* Added multiple form selection with color-coded visualization
+* Added conversion rate graphs (views to submissions)
+* Added hourly grouping option
+* Moved menu from Tools to Gravity Forms menu
+* Added form ID prefix in form selection dropdown
+* Enhanced error handling for forms with no view data
+* Changed default grouping from monthly to daily
+
 = 1.0.0 =
 * Initial release
 * Interactive line charts for form submissions
@@ -80,6 +89,9 @@ Users need the `gravityforms_view_entries` capability to view reports.
 * Statistics dashboard with totals and averages
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Major update: Multiple form selection, conversion rate tracking, and hourly grouping now available.
 
 = 1.0.0 =
 Initial release of Gravity Forms Graph.

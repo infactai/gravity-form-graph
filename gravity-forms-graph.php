@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms Graph
  * Plugin URI: https://github.com/InfactAi/gravity-form-graph
  * Description: Visualize Gravity Forms submission statistics with interactive charts and graphs. View daily, weekly, and monthly submission trends.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Infact.ai
  * Author URI: https://infact.ai
  * License: GPL v2 or later
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants.
-define('GFG_VERSION', '1.0.0');
+define('GFG_VERSION', '1.1.0');
 define('GFG_PLUGIN_FILE', __FILE__);
 define('GFG_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GFG_PLUGIN_URL', plugin_dir_url(__FILE__));
