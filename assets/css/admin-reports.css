@@ -50,6 +50,31 @@
     background-color: #fff;
 }
 
+/* Multi-select form dropdown */
+.gfg-reports-control select[multiple] {
+    height: auto;
+    min-height: 120px;
+    padding: 8px;
+}
+
+.gfg-reports-control select[multiple] option {
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+}
+
+.gfg-reports-control select[multiple] option:checked {
+    background: linear-gradient(0deg, #2271b1 0%, #2271b1 100%);
+    color: #fff;
+}
+
+.gfg-reports-control .description {
+    font-size: 12px;
+    color: #646970;
+    margin-top: 5px;
+    font-style: italic;
+}
+
 .gfg-reports-control select:focus,
 .gfg-reports-control input[type="date"]:focus {
     border-color: #2271b1;
@@ -141,6 +166,49 @@
 #gfg-reports-chart {
     max-height: 500px;
     display: block;
+}
+
+/* Conversion rate charts */
+.gfg-conversion-charts {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #dcdcde;
+}
+
+.gfg-conversion-charts h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #1d2327;
+}
+
+.gfg-conversion-chart-wrapper {
+    background: #f9f9f9;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.gfg-conversion-chart-wrapper h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    color: #1d2327;
+}
+
+.gfg-conversion-chart-wrapper .conversion-stats {
+    margin: 15px 0 0 0;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #50575e;
+}
+
+.gfg-conversion-chart {
+    max-height: 350px;
 }
 
 /* Responsive adjustments */

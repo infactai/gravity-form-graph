@@ -47,7 +47,8 @@ class GFG_Admin {
      * Constructor
      */
     private function __construct() {
-        add_action('admin_menu', array($this, 'register_admin_menu'));
+        // Use priority 99 to add menu item near the bottom
+        add_action('admin_menu', array($this, 'register_admin_menu'), 99);
     }
 
     /**
@@ -55,9 +56,9 @@ class GFG_Admin {
      */
     public function register_admin_menu() {
         $this->page_hook = add_submenu_page(
-            'tools.php',
-            __('Form Submission Reports', 'gravity-forms-graph'),
-            __('Form Reports', 'gravity-forms-graph'),
+            'gf_edit_forms',
+            __('Graphs', 'gravity-forms-graph'),
+            __('Graphs', 'gravity-forms-graph'),
             'gravityforms_view_entries',
             'gf-submission-reports',
             array($this, 'render_page')
@@ -85,7 +86,7 @@ class GFG_Admin {
         // Check if Gravity Forms is active
         if (!class_exists('GFAPI')) {
             echo '<div class="wrap">';
-            echo '<h1>' . esc_html__('Form Submission Reports', 'gravity-forms-graph') . '</h1>';
+            echo '<h1>' . esc_html__('Graphs', 'gravity-forms-graph') . '</h1>';
             echo '<div class="notice notice-error"><p>' . esc_html__('Gravity Forms plugin is required for this feature.', 'gravity-forms-graph') . '</p></div>';
             echo '</div>';
             return;
@@ -96,20 +97,20 @@ class GFG_Admin {
 
         ?>
         <div class="wrap gfg-reports-wrap">
-            <h1><?php esc_html_e('Form Submission Reports', 'gravity-forms-graph'); ?></h1>
+            <h1><?php esc_html_e('Graphs', 'gravity-forms-graph'); ?></h1>
 
             <div class="gfg-reports-controls">
                 <div class="gfg-reports-control-row">
                     <div class="gfg-reports-control">
-                        <label for="gfg-form-select"><?php esc_html_e('Select Form:', 'gravity-forms-graph'); ?></label>
-                        <select id="gfg-form-select" class="gfg-form-select">
-                            <option value=""><?php esc_html_e('-- Choose a form --', 'gravity-forms-graph'); ?></option>
+                        <label for="gfg-form-select"><?php esc_html_e('Select Form(s):', 'gravity-forms-graph'); ?></label>
+                        <select id="gfg-form-select" class="gfg-form-select" multiple size="5">
                             <?php foreach ($forms as $form) : ?>
                                 <option value="<?php echo esc_attr($form['id']); ?>">
-                                    <?php echo esc_html($form['title']); ?>
+                                    <?php echo esc_html($form['id'] . ' - ' . $form['title']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <small class="description"><?php esc_html_e('Hold Ctrl/Cmd to select multiple forms', 'gravity-forms-graph'); ?></small>
                     </div>
 
                     <div class="gfg-reports-control">
@@ -136,9 +137,10 @@ class GFG_Admin {
                     <div class="gfg-reports-control">
                         <label for="gfg-grouping"><?php esc_html_e('Group By:', 'gravity-forms-graph'); ?></label>
                         <select id="gfg-grouping" class="gfg-grouping">
-                            <option value="daily"><?php esc_html_e('Daily', 'gravity-forms-graph'); ?></option>
+                            <option value="hourly"><?php esc_html_e('Hourly', 'gravity-forms-graph'); ?></option>
+                            <option value="daily" selected><?php esc_html_e('Daily', 'gravity-forms-graph'); ?></option>
                             <option value="weekly"><?php esc_html_e('Weekly', 'gravity-forms-graph'); ?></option>
-                            <option value="monthly" selected><?php esc_html_e('Monthly', 'gravity-forms-graph'); ?></option>
+                            <option value="monthly"><?php esc_html_e('Monthly', 'gravity-forms-graph'); ?></option>
                         </select>
                     </div>
 
@@ -171,6 +173,11 @@ class GFG_Admin {
                     </div>
                 </div>
                 <canvas id="gfg-reports-chart"></canvas>
+
+                <div class="gfg-conversion-charts" style="display: none; margin-top: 40px;">
+                    <h2><?php esc_html_e('Conversion Rates (Views to Submissions)', 'gravity-forms-graph'); ?></h2>
+                    <div id="gfg-conversion-charts-container"></div>
+                </div>
             </div>
         </div>
         <?php

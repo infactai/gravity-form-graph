@@ -9,6 +9,21 @@
     'use strict';
 
     let reportChart = null;
+    let conversionCharts = [];
+
+    // Color palette for multiple forms
+    const COLOR_PALETTE = [
+        { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.2)' },
+        { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.2)' },
+        { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.2)' },
+        { border: 'rgb(255, 206, 86)', background: 'rgba(255, 206, 86, 0.2)' },
+        { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.2)' },
+        { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.2)' },
+        { border: 'rgb(99, 255, 132)', background: 'rgba(99, 255, 132, 0.2)' },
+        { border: 'rgb(235, 54, 162)', background: 'rgba(235, 54, 162, 0.2)' },
+        { border: 'rgb(86, 255, 206)', background: 'rgba(86, 255, 206, 0.2)' },
+        { border: 'rgb(102, 153, 255)', background: 'rgba(102, 153, 255, 0.2)' },
+    ];
 
     // Initialize when DOM is ready
     $(document).ready(function() {
@@ -97,12 +112,12 @@
      * Generate the report
      */
     function generateReport() {
-        const formId = $('#gfg-form-select').val();
+        const formIds = $('#gfg-form-select').val();
         const grouping = $('#gfg-grouping').val();
         const dateRange = getDateRange();
 
         // Validate inputs
-        if (!formId) {
+        if (!formIds || formIds.length === 0) {
             showError(gfgReportsData.strings.selectForm);
             return;
         }
@@ -122,7 +137,7 @@
             data: {
                 action: 'gfg_get_report_data',
                 nonce: gfgReportsData.nonce,
-                form_id: formId,
+                form_id: formIds, // Send as array
                 grouping: grouping,
                 start_date: dateRange.startDate,
                 end_date: dateRange.endDate
@@ -130,7 +145,8 @@
             success: function(response) {
                 if (response.success) {
                     renderChart(response.data);
-                    updateStats(response.data.stats);
+                    renderConversionCharts(response.data);
+                    updateStats(response.data.datasets);
                     hideLoading();
                 } else {
                     showError(response.data.message || gfgReportsData.strings.fetchError);
@@ -145,7 +161,7 @@
     }
 
     /**
-     * Render the chart using Chart.js
+     * Render the submissions chart using Chart.js
      */
     function renderChart(data) {
         const ctx = document.getElementById('gfg-reports-chart').getContext('2d');
@@ -155,25 +171,33 @@
             reportChart.destroy();
         }
 
+        // Prepare datasets with colors
+        const chartDatasets = data.datasets.map((dataset, index) => {
+            const colorIndex = index % COLOR_PALETTE.length;
+            const colors = COLOR_PALETTE[colorIndex];
+
+            return {
+                label: dataset.label,
+                data: dataset.data,
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: colors.border,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            };
+        });
+
         // Create new chart
         reportChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: data.labels,
-                datasets: [{
-                    label: gfgReportsData.strings.submissions,
-                    data: data.data,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: 'rgb(75, 192, 192)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                }]
+                datasets: chartDatasets
             },
             options: {
                 responsive: true,
@@ -206,7 +230,7 @@
                         padding: 12,
                         callbacks: {
                             label: function(context) {
-                                return gfgReportsData.strings.submissions + ': ' + context.parsed.y;
+                                return context.dataset.label + ': ' + context.parsed.y;
                             }
                         }
                     }
@@ -252,12 +276,149 @@
     }
 
     /**
+     * Render conversion rate charts
+     */
+    function renderConversionCharts(data) {
+        // Destroy existing conversion charts
+        conversionCharts.forEach(chart => chart.destroy());
+        conversionCharts = [];
+
+        // Clear container
+        $('#gfg-conversion-charts-container').empty();
+
+        // Create a chart for each form
+        data.conversion_datasets.forEach((dataset, index) => {
+            const colorIndex = index % COLOR_PALETTE.length;
+            const colors = COLOR_PALETTE[colorIndex];
+
+            // Add defensive checks for stats
+            const stats = dataset.stats || {
+                total_views: 0,
+                total_submissions: 0,
+                conversion_rate: 0
+            };
+
+            // Create canvas element
+            const canvasId = 'gfg-conversion-chart-' + dataset.form_id;
+            const $canvas = $('<canvas>', {
+                id: canvasId,
+                class: 'gfg-conversion-chart'
+            });
+
+            // Add title and canvas
+            const $wrapper = $('<div>', { class: 'gfg-conversion-chart-wrapper' });
+            $wrapper.append('<h3>' + dataset.label + ' - Conversion Rate</h3>');
+            $wrapper.append($canvas);
+            $wrapper.append('<p class="conversion-stats">Total Views: ' + stats.total_views + ' | Total Submissions: ' + stats.total_submissions + ' | Overall Rate: ' + stats.conversion_rate + '%</p>');
+            $('#gfg-conversion-charts-container').append($wrapper);
+
+            // Create chart
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Conversion Rate (%)',
+                        data: dataset.data,
+                        borderColor: colors.border,
+                        backgroundColor: colors.background,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: colors.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2.5,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Conversion Rate: ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Conversion Rate (%)',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+
+            conversionCharts.push(chart);
+        });
+
+        // Show conversion charts section
+        $('.gfg-conversion-charts').show();
+    }
+
+    /**
      * Update statistics display
      */
-    function updateStats(stats) {
-        $('#total-submissions').text(stats.total);
-        $('#avg-submissions').text(stats.average);
-        $('#peak-period').text(stats.peak_period || '-');
+    function updateStats(datasets) {
+        // Calculate totals across all selected forms
+        let totalSubmissions = 0;
+        let totalPeriods = 0;
+        let peakCount = 0;
+        let peakPeriod = '';
+
+        datasets.forEach(dataset => {
+            // Add defensive checks for stats object
+            if (dataset.stats && typeof dataset.stats === 'object') {
+                totalSubmissions += dataset.stats.total || 0;
+
+                const datasetPeakCount = dataset.stats.peak_count || 0;
+                if (datasetPeakCount > peakCount) {
+                    peakCount = datasetPeakCount;
+                    peakPeriod = (dataset.stats.peak_period || '-') + ' (' + dataset.label + ')';
+                }
+            }
+
+            if (dataset.data && Array.isArray(dataset.data)) {
+                totalPeriods = Math.max(totalPeriods, dataset.data.length);
+            }
+        });
+
+        const avgSubmissions = totalPeriods > 0 ? (totalSubmissions / totalPeriods).toFixed(1) : 0;
+
+        $('#total-submissions').text(totalSubmissions);
+        $('#avg-submissions').text(avgSubmissions);
+        $('#peak-period').text(peakPeriod || '-');
         $('.gfg-reports-stats').show();
     }
 
@@ -268,6 +429,7 @@
         $('.gfg-reports-loading').show();
         $('.gfg-reports-error').hide();
         $('.gfg-reports-stats').hide();
+        $('.gfg-conversion-charts').hide();
         $('#gfg-reports-chart').hide();
     }
 
@@ -285,6 +447,7 @@
     function showError(message) {
         $('.gfg-reports-error').html('<p>' + message + '</p>').show();
         $('.gfg-reports-stats').hide();
+        $('.gfg-conversion-charts').hide();
         $('#gfg-reports-chart').hide();
     }
 

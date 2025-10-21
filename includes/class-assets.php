@@ -50,7 +50,7 @@ class GFG_Assets {
      */
     public function enqueue_admin_assets($hook) {
         // Only load on our specific page
-        if ($hook !== 'tools_page_gf-submission-reports') {
+        if ($hook !== 'forms_page_gf-submission-reports') {
             return;
         }
 
