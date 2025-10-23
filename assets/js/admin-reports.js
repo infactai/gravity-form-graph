@@ -227,10 +227,25 @@
                         bodyFont: {
                             size: 13
                         },
+                        footerFont: {
+                            size: 13,
+                            weight: 'bold'
+                        },
                         padding: 12,
                         callbacks: {
                             label: function(context) {
                                 return context.dataset.label + ': ' + context.parsed.y;
+                            },
+                            footer: function(tooltipItems) {
+                                // Only show total if there are multiple forms
+                                if (tooltipItems.length > 1) {
+                                    let total = 0;
+                                    tooltipItems.forEach(function(tooltipItem) {
+                                        total += tooltipItem.parsed.y;
+                                    });
+                                    return 'Total: ' + total;
+                                }
+                                return '';
                             }
                         }
                     }
